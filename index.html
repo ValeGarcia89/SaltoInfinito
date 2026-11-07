@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0f1b3d">
+  <meta name="description" content="Salto Infinito (Infinite Jump): corredor infinito en el navegador. Salta las rocas con el conejo.">
+  <meta property="og:title" content="Salto Infinito — Infinite Jump">
+  <meta property="og:image" content="assets/ui/splash.webp">
+  <title>Salto Infinito — Infinite Jump</title>
+  <link rel="icon" type="image/png" href="assets/sprites/favicon.png">
+  <link rel="preload" href="assets/ui/splash.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/sprites/sprites.png" as="image">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="game" aria-label="Área de juego"></canvas>
+
+    <!-- Carga inicial -->
+    <div id="loader">
+      <img id="loader-img" alt="Salto Infinito" hidden>
+      <p id="loader-text">Cargando…</p>
+    </div>
+
+    <!-- HUD durante la partida: tiempo arriba a la derecha -->
+    <div id="hud" class="hidden">
+      <button class="icon-btn" id="btn-pause" data-action="pause" aria-label="Pausa">
+        <svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      </button>
+      <div id="hud-right">
+        <div id="time-box" aria-label="Tiempo de supervivencia">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><rect x="9" y="2" width="6" height="2.5" rx="1"/></svg>
+          <span id="time-val">0:00</span>
+        </div>
+        <div id="score-box">PUNTOS <b id="score-val">0</b></div>
+      </div>
+    </div>
+
+    <!-- Botones fijos: ajustes (arriba izquierda) y pantalla completa (abajo derecha) -->
+    <button class="icon-btn corner tl" id="btn-settings" data-action="settings" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24"><path d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.4a.5.5 0 0 0-.6-.2l-2.5 1a7.5 7.5 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.4a.5.5 0 0 0 .1.6L4.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.4c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.2.4.5.4h4c.3 0 .5-.2.5-.4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.4a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+    </button>
+    <button class="icon-btn corner br small" id="btn-fullscreen" data-action="fullscreen" aria-label="Pantalla completa">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <!-- Pantalla principal -->
+    <section id="screen-menu" class="screen show" aria-label="Menú principal">
+      <h1 class="title"><span class="t1">Salto</span> <span class="t2">Infinito</span><small>Infinite Jump</small></h1>
+      <nav class="menu-buttons">
+        <button class="btn btn-orange" data-action="play">JUGAR</button>
+        <button class="btn btn-blue" data-action="customize">PERSONALIZAR</button>
+        <button class="btn btn-purple" data-action="instructions">INSTRUCCIONES</button>
+      </nav>
+      <p class="rotate-hint">↻ Gira el teléfono para jugar mejor</p>
+    </section>
+
+    <!-- Selección de modo -->
+    <section id="screen-modes" class="screen" aria-label="Elegir dificultad">
+      <div class="panel">
+        <h2>Elige la dificultad</h2>
+        <div class="mode-list">
+          <button class="btn btn-green mode" data-action="mode" data-mode="easy"><span class="m-name">FÁCIL</span><span class="m-desc">Lento y con mucho espacio</span><span class="m-best" data-best="easy"></span></button>
+          <button class="btn btn-yellow mode" data-action="mode" data-mode="medium"><span class="m-name">MEDIO</span><span class="m-desc">Va acelerando poco a poco</span><span class="m-best" data-best="medium"></span></button>
+          <button class="btn btn-red mode" data-action="mode" data-mode="hard"><span class="m-name">DIFÍCIL</span><span class="m-desc">Rápido y con poco tiempo</span><span class="m-best" data-best="hard"></span></button>
+        </div>
+        <button class="btn btn-ghost" data-action="back">VOLVER</button>
+      </div>
+    </section>
+
+    <!-- Personalizar -->
+    <section id="screen-customize" class="screen" aria-label="Personalizar conejo">
+      <div class="panel wide">
+        <h2>Color del conejo</h2>
+        <div class="custom-row">
+          <div class="preview"><canvas id="preview" width="160" height="160"></canvas></div>
+          <div id="swatches" class="swatches" role="radiogroup" aria-label="Colores"></div>
+        </div>
+        <button class="btn btn-orange" data-action="back">LISTO</button>
+      </div>
+    </section>
+
+    <!-- Instrucciones -->
+    <section id="screen-instructions" class="screen" aria-label="Instrucciones">
+      <div class="panel wide">
+        <h2>¿Cómo se juega?</h2>
+        <ul class="how">
+          <li><canvas class="ico" data-ico="rabbit" width="64" height="64"></canvas><div><b>Objetivo</b><span>El conejo corre solo. Sobrevive el mayor tiempo posible.</span></div></li>
+          <li><canvas class="ico" data-ico="key" width="64" height="64"></canvas><div><b>Saltar</b><span>Espacio, flecha ↑, clic o toca la pantalla.</span></div></li>
+          <li><canvas class="ico" data-ico="stone" width="64" height="64"></canvas><div><b>Esquiva</b><span>Salta las rocas y troncos. Si chocas, pierdes.</span></div></li>
+          <li><canvas class="ico" data-ico="modes" width="64" height="64"></canvas><div><b>Modos</b><span>Fácil: lento · Medio: acelera · Difícil: veloz.</span></div></li>
+          <li><canvas class="ico" data-ico="carrot" width="64" height="64"></canvas><div><b>Más puntos</b><span>Aguanta más tiempo y esquiva más obstáculos.</span></div></li>
+        </ul>
+        <button class="btn btn-purple" data-action="back">ENTENDIDO</button>
+      </div>
+    </section>
+
+    <!-- Ajustes -->
+    <section id="screen-settings" class="screen" aria-label="Ajustes">
+      <div class="panel">
+        <h2>Ajustes</h2>
+        <div class="set-row">
+          <span class="set-name">Música</span>
+          <button class="switch" id="sw-music" role="switch" aria-checked="true" aria-label="Música"><i></i></button>
+          <input type="range" id="vol-music" min="0" max="100" aria-label="Volumen de la música">
+        </div>
+        <div class="set-row">
+          <span class="set-name">Efectos (SFX)</span>
+          <button class="switch" id="sw-sfx" role="switch" aria-checked="true" aria-label="Efectos de sonido"><i></i></button>
+          <input type="range" id="vol-sfx" min="0" max="100" aria-label="Volumen de los efectos">
+        </div>
+        <div class="set-row">
+          <span class="set-name">Métricas de prueba</span>
+          <button class="switch" id="sw-metrics" role="switch" aria-checked="false" aria-label="Mostrar métricas"><i></i></button>
+          <span class="set-hint">FPS y respuesta del salto</span>
+        </div>
+        <button class="btn btn-orange" data-action="close-settings">LISTO</button>
+      </div>
+    </section>
+
+    <!-- Pausa -->
+    <section id="screen-pause" class="screen" aria-label="Pausa">
+      <div class="panel">
+        <h2>Pausa</h2>
+        <button class="btn btn-orange" data-action="resume">CONTINUAR</button>
+        <button class="btn btn-ghost" data-action="menu">MENÚ PRINCIPAL</button>
+      </div>
+    </section>
+
+    <!-- Derrota -->
+    <section id="screen-over" class="screen" aria-label="Juego terminado">
+      <div class="panel">
+        <h2 class="over-title">¡Juego terminado!</h2>
+        <div class="stats">
+          <div><span>Puntuación</span><b id="over-score">0</b></div>
+          <div><span>Tiempo</span><b id="over-time">0.0 s</b></div>
+          <div class="best"><span>Mejor</span><b id="over-best">0</b></div>
+        </div>
+        <p id="over-note" class="note"></p>
+        <button class="btn btn-orange" data-action="retry">VOLVER A JUGAR</button>
+        <button class="btn btn-ghost" data-action="menu">MENÚ PRINCIPAL</button>
+      </div>
+    </section>
+
+    <!-- Panel de métricas (se activa en Ajustes o con F3) -->
+    <pre id="metrics" hidden></pre>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/background.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

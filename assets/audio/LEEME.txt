@@ -1,0 +1,7 @@
+Carpeta para audio (opcional).
+El juego ya trae música y efectos sintetizados (no necesita archivos).
+Para usar tus propios sonidos, copia aquí los archivos (.mp3 / .ogg / .wav) y escribe las rutas
+en js/config.js, dentro de CONFIG.AUDIO_FILES. Ejemplo:
+    music: 'assets/audio/musica.mp3',
+    sfx: { jump: 'assets/audio/salto.wav', crash: 'assets/audio/choque.wav', click: null, start: null }
+Si un archivo no existe o falla al cargar, el juego sigue funcionando con el sonido sintetizado.
